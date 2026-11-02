@@ -1,97 +1,222 @@
-# Minhas localizações — Atividade 1
+# Minhas localizações
 
-Integrante: Bruna Rodrigues Gomes.
-Plataforma escolhida: **Android**. Não é uma entrega configurada para iOS ou Web.
+Aplicativo Flutter para Android desenvolvido na Atividade 1 da disciplina de Programação para Dispositivos Móveis I.
 
-Aplicativo Flutter didático para coletar coordenadas por stream, persistir no SQLite e consultar histórico/mapa. Sem backend, Timer.periodic, workmanager, Provider, BLoC ou camadas artificiais. As classes concretas são recebidas por construtor: reduz dependências globais sem acrescentar interfaces desnecessárias.
+**Integrante:** Bruna Rodrigues Gomes  
+**Professor:** Arley
 
-## Situação da validação
+## Objetivo
 
-Fontes e configurações foram revisados, mas **não foram compilados ou executados**: o ambiente de preparação não possui Flutter, Android SDK ou dispositivo. Não foi possível executar `dart format`, `flutter analyze` ou validar o GPS em segundo plano. Execute os comandos abaixo e os testes manuais antes de entregar. Não apresente este pacote como uma versão já testada.
+Coletar continuamente a localização do aparelho, armazenar as posições em um banco SQLite e permitir sua consulta em uma lista e em um mapa interativo.
 
-## Preparar e executar
+## Funcionalidades
 
-É necessário um computador com Flutter SDK, Android SDK (normalmente instalado pelo Android Studio), Python 3 e um Android físico com depuração USB ou emulador com Google APIs. VS Code é uma opção de editor. DartPad não executa esta atividade completa.
+- Iniciar e interromper a coleta de localização.
+- Verificar a disponibilidade do serviço de localização e solicitar permissões.
+- Manter a coleta durante a navegação entre telas e ao minimizar o aplicativo.
+- Exibir uma notificação enquanto a coleta estiver ativa.
+- Armazenar as posições localmente em SQLite.
+- Consultar as últimas 100 localizações, da mais recente para a mais antiga.
+- Exibir data e hora locais, latitude, longitude e precisão estimada.
+- Limpar todo o histórico mediante confirmação.
+- Apresentar as localizações em um mapa com ruas e marcadores.
+- Destacar o registro mais recente em vermelho.
+- Atualizar os registros e reenquadrar os pontos no mapa.
+- Utilizar ícone próprio.
 
-1. Extraia o ZIP e abra o terminal na pasta `localizacoes_estudo`.
-2. Confira a instalação: `flutter doctor`.
-3. Execute `python preparar_projeto.py` (Linux: `python3 preparar_projeto.py`). O script cria `projeto_android` com os arquivos nativos oficiais do Flutter e copia estes fontes/configurações sobre a base. Ele não altera uma pasta `projeto_android` já existente.
-4. Entre em `projeto_android`.
-5. Execute:
+A coleta solicita alta precisão e intervalo de 20 segundos. O intervalo efetivo depende do sistema operacional e da disponibilidade de localização.
+
+## Tecnologias
+
+- Dart e Flutter.
+- `geolocator`: localização e stream de posições.
+- `permission_handler`: permissão de notificações.
+- `sqflite`: banco SQLite.
+- `path` e `path_provider`: caminhos e armazenamento privado.
+- `flutter_map` e `latlong2`: mapa e coordenadas.
+- `url_launcher`: abertura do link de atribuição do mapa.
+
+As dependências estão declaradas no `pubspec.yaml`, e as versões resolvidas estão registradas no `pubspec.lock`.
+
+## Execução
+
+### Requisitos
+
+- Flutter SDK instalado.
+- Android SDK e ferramentas de compilação configurados.
+- Celular Android com depuração USB habilitada ou emulador Android compatível.
+- Internet para obter as dependências e carregar novas imagens do mapa.
+
+### Instalação e execução
+
+Clone o repositório:
+
+```sh
+git clone https://github.com/brunagomess26/coleta-localizacoes-flutter.git
+cd coleta-localizacoes-flutter
+```
+
+Instale as dependências:
 
 ```sh
 flutter pub get
-dart format lib
-flutter analyze
+```
+
+Confira o ambiente e os dispositivos disponíveis:
+
+```sh
+flutter doctor
 flutter devices
+```
+
+Execute o aplicativo:
+
+```sh
 flutter run
 ```
 
-Use Flutter estável recente. O geolocator requer compileSdk de pelo menos 35; confira `android/app/build.gradle.kts` gerado pelo Flutter. Se o padrão do SDK instalado for menor, defina `compileSdk = 35` (ou maior) e instale a plataforma correspondente no Android SDK Manager. Use minSdk de pelo menos 21. Dependências possuem limites de versão no pubspec; após resolver e testar, versione também o `pubspec.lock` gerado.
+Para selecionar um dispositivo específico:
 
-O wrapper Gradle, MainActivity, temas e demais arquivos nativos são gerados por `flutter create`, não foram reconstruídos manualmente neste pacote. O Manifest entregue substitui o gerado para adicionar permissões e o ícone próprio. Faça os ajustes de código dentro de `projeto_android` depois da preparação.
+```sh
+flutter run -d ID_DO_DISPOSITIVO
+```
 
-## Uso
+### Análise estática
 
-- Autorize notificações quando solicitado; se estiverem bloqueadas, habilite-as nas configurações do aplicativo. A coleta só inicia com o aviso autorizado.
-- Ative o GPS e inicie a coleta com o aplicativo aberto. Autorize localização precisa, se desejar a melhor precisão disponível.
-- O AndroidSettings pede alta precisão e intervalo de 20 segundos; não garante uma posição exatamente nesse intervalo.
-- O geolocator mantém um serviço em primeiro plano com notificação e wake lock. Sua declaração de serviço é mesclada pelo manifest do plugin.
-- A permissão enquanto em uso atende ao serviço iniciado com a tela visível. Não iniciamos o serviço em background e não pedimos acesso permanente desnecessário.
-- Ao abrir histórico ou mapa, Navigator.push mantém a tela de coleta montada. Ao minimizar, o serviço de localização mantém a coleta conforme as condições do Android; valide no aparelho, incluindo tela apagada. Não se exige sobrevivência ao encerramento do processo, reinicialização ou parada forçada pelo usuário.
-- Pare pelo botão Parar coleta. Uma gravação já iniciada pode terminar antes de a parada ser concluída.
-- Atualize o histórico e o mapa pelos botões do topo. Os registros não são atualizados automaticamente nessas telas.
-- No mapa, toque nos marcadores para detalhes. Vermelho indica o registro mais recente, pintado por cima dos demais. O botão de mira reenquadra os pontos, inclusive quando todos têm a mesma coordenada.
+```sh
+flutter analyze
+```
 
-## Banco
+## Utilização
 
-`localizacoes.db`, tabela `localizacoes`, com id INTEGER PRIMARY KEY AUTOINCREMENT, latitude/longitude/precisao REAL NOT NULL e instante TEXT NOT NULL. O instante é salvo em UTC ISO 8601 e convertido com toLocal() para exibição.
+### Coleta
 
-A consulta usa LIMIT 100, com ordenação por instante e id decrescentes. O limite não remove registros. A limpeza usa DELETE sem WHERE, preservando banco e tabela. A conexão e uma abertura ainda em andamento são compartilhadas; abertura com falha é descartada para permitir nova tentativa.
+Na tela inicial, selecione **Iniciar coleta** e conceda as permissões solicitadas. A localização do aparelho deve estar habilitada.
 
-## Organização
+Durante a coleta, o botão de início fica desabilitado e o botão **Parar coleta** fica disponível. A notificação informa que a coleta está ativa.
 
-- `main.dart`: inicialização.
-- `app.dart`: MaterialApp e criação das dependências compartilhadas.
-- `models/localizacao.dart`: dados tipados e conversão para persistência.
-- `data/database`: conexão e criação do SQLite.
-- `data/repositories`: inserir, consultar e limpar.
-- `services/servico_localizacao.dart`: GPS, permissão, stream e configurações.
-- `services/cache_mapa.dart`: pasta privada e cache HTTP do mapa.
-- `presentation/screens`: estado das telas, assinatura e navegação.
-- `presentation/widgets`: apresentação reutilizável do registro e mapa.
+A coleta continua durante a navegação para o histórico e o mapa. Para encerrá-la, selecione **Parar coleta**.
 
-## Mapa, atribuição e cache
+### Histórico
 
-Usa tiles de ruas do OpenStreetMap: https://tile.openstreetmap.org/{z}/{x}/{y}.png. A atribuição visível tem link para https://www.openstreetmap.org/copyright. O identificador do aplicativo é br.com.bruna.localizacoes, usado no User-Agent. Para publicar ou distribuir amplamente, atualize o identificador e forneça uma identificação de contato/projeto verificável segundo a política do provedor.
+A tela apresenta as últimas 100 localizações salvas, com:
 
-O cache nativo do flutter_map recebe uma pasta privada preparada antes do mapa. Respeita cabeçalhos HTTP sem sobrescrever validade, limitado a aproximadamente 100 MB. Não há download em massa, pré-carregamento para uso offline ou promessa de funcionamento offline. Só imagens já armazenadas e utilizáveis poderão aparecer sem rede. Regras: https://operations.osmfoundation.org/policies/tiles/.
+- Data e hora locais.
+- Latitude e longitude com seis casas decimais.
+- Precisão estimada em metros, com uma casa decimal.
+
+O botão de atualização recarrega a lista. A lixeira permite excluir todo o histórico após confirmação.
+
+Quando a limpeza é realizada durante a coleta, novos registros continuam sendo salvos.
+
+### Mapa
+
+O mapa apresenta as últimas 100 posições salvas.
+
+- Marcadores azuis: registros anteriores.
+- Marcador vermelho: registro mais recente.
+- Toque no marcador: detalhes da localização.
+- Botão de mira: reenquadramento de todos os pontos.
+- Botão de atualização: nova consulta aos registros.
+
+As cores representam a ordem dos registros, não sua precisão. Pontos com coordenadas iguais ou próximas podem ficar sobrepostos.
+
+## Organização do projeto
+
+O código está organizado em `lib/features/localizacoes`, com separação entre modelo, persistência, serviços e apresentação.
+
+| Arquivo ou diretório | Responsabilidade |
+|---|---|
+| `lib/main.dart` | Inicialização do Flutter |
+| `lib/app.dart` | Configuração do aplicativo e criação das dependências |
+| `models/localizacao.dart` | Representação tipada dos registros e conversão para persistência |
+| `data/database/banco_localizacoes.dart` | Abertura do banco e criação da tabela |
+| `data/repositories/repositorio_localizacoes.dart` | Inserção, consulta e exclusão dos registros |
+| `services/servico_localizacao.dart` | GPS, permissões e stream de posições |
+| `services/cache_mapa.dart` | Preparação do cache privado do mapa |
+| `presentation/screens/` | Telas, estados e coordenação das operações |
+| `presentation/widgets/` | Componentes de apresentação reutilizáveis |
+
+As telas não executam SQL diretamente. A apresentação utiliza objetos `Localizacao`, e as dependências são recebidas por construtor.
+
+A coleta utiliza stream de localização. O processamento com `asyncMap` aguarda a gravação de uma posição antes de processar a seguinte.
+
+## Banco de dados
+
+**Arquivo:** `localizacoes.db`  
+**Tabela:** `localizacoes`
+
+| Coluna | Tipo | Restrição |
+|---|---|---|
+| `id` | INTEGER | Chave primária com autoincremento |
+| `latitude` | REAL | Obrigatória |
+| `longitude` | REAL | Obrigatória |
+| `precisao` | REAL | Obrigatória; valor em metros |
+| `instante` | TEXT | Obrigatória; UTC em formato ISO 8601 |
+
+Os registros permanecem no armazenamento privado do aplicativo após seu fechamento.
+
+O instante é armazenado em UTC e convertido para o horário local na apresentação.
+
+O limite de 100 registros aplica-se somente às consultas. Os registros antigos não são excluídos automaticamente.
+
+A limpeza remove todas as linhas, preservando a tabela e o arquivo do banco.
+
+## Mapa e cache
+
+O aplicativo utiliza imagens do OpenStreetMap e apresenta a atribuição **© OpenStreetMap contributors**, com acesso à página de direitos autorais.
+
+O cache de imagens utiliza uma pasta privada do aplicativo, com limite configurado de aproximadamente 100 MB e validade determinada pelos cabeçalhos HTTP do provedor.
+
+Não há download em massa ou modo offline completo. O carregamento de novas imagens depende de conexão com a internet.
+
+- [Atribuição do OpenStreetMap](https://www.openstreetmap.org/copyright)
+- [Política de uso das imagens do mapa](https://operations.osmfoundation.org/policies/tiles/)
 
 ## Ícone
 
-Imagem original em `assets/icons/localizacoes.png`, acompanhada da fonte vetorial SVG editável. Inclui versões por densidade, foreground adaptativo, fundo e ícone monocromático da notificação. O Manifest aponta para `@mipmap/ic_localizacoes`. Verifique na tela inicial e lista de aplicativos após instalar; se necessário reinstale para limpar cache do launcher.
+O ícone próprio está disponível em `assets/icons/localizacoes.png`, acompanhado da fonte vetorial `localizacoes.svg`.
 
-## Validação manual antes de entregar
+O projeto inclui versões Android para diferentes densidades, ícone adaptativo e ícone da notificação.
 
-1. Sem GPS: iniciar deve orientar a ativação.
-2. Negar permissão e bloquear novas solicitações: conferir mensagens e botão de configurações.
-3. Autorizar e iniciar: confirmar notificação, estado dos botões e registros; tocar repetidamente não deve criar outras assinaturas.
-4. Navegar para histórico/mapa e minimizar por alguns minutos: voltar, atualizar e confirmar novos instantes. Repetir com tela apagada no aparelho de destino.
-5. Parar: após concluir a parada, esperar e atualizar; não devem surgir novas posições da coleta parada.
-6. Fechar e reabrir: histórico deve persistir.
-7. Em uma base de teste com mais de 100 registros: mostrar apenas os últimos 100, sem apagar os antigos; a limpeza deve remover todos. Não envie a base ao repositório.
-8. Cancelar a limpeza deve preservar dados. Confirmar deve mostrar sucesso e atualizar. Durante coleta, novos dados podem surgir após a exclusão.
-9. Conferir 6 casas nas coordenadas, 1 na precisão e horário local.
-10. No mapa: ruas, atribuição clicável, pontos, mais recente vermelho, toque, zoom, pan, atualização e reenquadramento. Conferir histórico vazio e erro de rede.
-11. Conferir ícone instalado, `dart format lib` e `flutter analyze` sem problemas.
+## Validação
 
-## Repositório e entrega
+O aplicativo foi compilado e executado em um **Motorola Moto g9 play com Android 11 — API 30**, conectado por USB.
 
-Envie o conteúdo de `projeto_android` ao GitHub e mantenha o nome da integrante neste README. O roteiro de estudo pode acompanhar o projeto. Não envie banco com coordenadas pessoais, build/, .dart_tool/ ou android/local.properties. A entrega no Teams e o envio ao professor devem ser feitos por você.
+A análise estática foi concluída com:
 
-## Referências das APIs
+```text
+No issues found!
+```
 
-- https://pub.dev/packages/geolocator
-- https://pub.dev/packages/permission_handler/versions/12.0.3
-- https://pub.dev/documentation/flutter_map/latest/
-- https://docs.flutter.dev/cookbook/persistence/sqlite
+Nos testes manuais realizados, foram verificados:
+
+- Início e parada da coleta.
+- Estado dos botões conforme a coleta.
+- Gravação e consulta das posições.
+- Continuidade da coleta durante a navegação e em segundo plano.
+- Notificação de coleta ativa.
+- Persistência após fechar e reabrir o aplicativo.
+- Atualização, cancelamento e confirmação da limpeza do histórico.
+- Limpeza durante a coleta.
+- Apresentação do histórico vazio.
+- Formatação dos dados.
+- Exibição dos marcadores e destaque do registro mais recente.
+- Detalhes dos marcadores, atualização e reenquadramento do mapa.
+- Tratamento de GPS desativado e permissão negada.
+- Exibição do ícone próprio.
+
+## Limitações
+
+- Implementação configurada para Android.
+- Intervalo e precisão sujeitos às condições do serviço de localização.
+- Atualização manual do histórico e do mapa.
+- Ausência de reinício automático da coleta após encerramento do processo ou reinicialização do aparelho.
+- Dependência de internet para carregar imagens do mapa ainda não disponíveis no cache.
+
+## Referências
+
+- [Geolocator](https://pub.dev/packages/geolocator)
+- [Permission Handler](https://pub.dev/packages/permission_handler)
+- [Flutter Map](https://pub.dev/documentation/flutter_map/latest/)
+- [Persistência com SQLite no Flutter](https://docs.flutter.dev/cookbook/persistence/sqlite)
