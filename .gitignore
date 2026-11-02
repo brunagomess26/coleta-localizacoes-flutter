@@ -1,0 +1,10 @@
+.dart_tool/
+.flutter-plugins-dependencies
+build/
+*.db
+*.db-shm
+*.db-wal
+android/local.properties
+
+.idea/
+*.iml
